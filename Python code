@@ -1,0 +1,125 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import MinMaxScaler
+
+df = pd.read_csv("C:/Users/shiva/OneDrive/Desktop/pyhton_project_dset.csv")
+df
+
+print(df.info())
+print(df.describe())
+
+#Total stock Commodity Stock and Stock have null values
+null_num = ['Total_stock','Commodity_Stock','Stock']
+
+for col in null_num :
+    df[col].fillna(df[col].mean(),inplace=True)
+
+
+df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y')
+
+
+print(df.info())  
+print(df['District_name'].head())
+print(df['Code'].head())
+print(df['Code'].tail())
+
+
+df['Code'] = df['Code'].str.replace('Region Name: ','',regex=False)
+print(df['Code'].head())
+print(df['Code'].tail())
+
+
+#bar plot on Commodity_name and Total_stock
+
+plt.figure(figsize=(8,4))
+sns.barplot(data=df,x='Commodity_name',y='Total_stock',palette='coolwarm')
+plt.xlabel("Commodity Name")
+plt.ylabel("Total Stock")
+plt.title("Commodity Name VS Total Stock")
+plt.show()
+
+#scatter plot on Total_stock on Commodity_stock
+plt.figure(figsize=(8,4))
+sns.scatterplot(data=df,x='Total_stock',y='Commodity_Stock',hue='Commodity_name')
+plt.xlabel("Total Stock")
+plt.ylabel("Commodity Stock")
+plt.title("Total Stock VS Commodity Stock")
+plt.show()
+
+
+#top 10 district names with average stock
+plt.figure(figsize=(8,4))
+top_districts = df.groupby('District_name')['Stock'].mean().sort_values(ascending=False).head(10)
+sns.barplot(x=top_districts.values, y=top_districts.index, palette='viridis')
+plt.title('Top 10 Districts by Average Stock')
+
+#Top 10 Code Total Stock
+plt.figure(figsize=(8,4))
+top_codes = df.groupby('Code')['Total_stock'].mean().sort_values(ascending=False).head(10)
+sns.lineplot(x=top_codes.values, y=top_codes.index, palette='viridis')
+plt.title('Top 10 Code by Average Total Stock')
+
+
+#Top 3 commoditites by Total Stock
+plt.figure(figsize=(8,4))
+tot_com_name = df.groupby("Commodity_name")["Commodity_Stock"].sum().sort_values(ascending=False).head(3)
+plt.figure(figsize=(8,4))
+plt.pie(tot_com_name, labels=tot_com_name.index, autopct='%1.1f%%', startangle=180)
+plt.title('Top 3 Commodities by Total Stock')
+plt.show()
+
+#heat map 0f Commodity Stock and Total stock
+plt.figure(figsize=(8,4))
+corr_matrix = df[['Commodity_Stock','Total_stock','Stock']].corr()
+plt.figure(figsize=(6,4))
+sns.heatmap(corr_matrix,annot=True,cmap='coolwarm',linewidths=0.5)
+plt.show()
+
+
+numeric_cols = df[['Total_stock', 'Commodity_Stock', 'Stock']]
+
+# Create the pairplot
+plt.figure(figsize=(8,4))
+sns.pairplot(numeric_cols, diag_kind='kde', corner=True)
+plt.suptitle('Pairplot of Stock Metrics', y=1.02)
+plt.show()
+
+
+
+#Regression
+print(df.describe())
+
+
+#Normalization
+scaler = MinMaxScaler()
+df[['Total_stock','Commodity_Stock','Stock']] = scaler.fit_transform(df[['Total_stock','Commodity_Stock','Stock']])
+print("After Normalization")
+print(df[['Total_stock','Commodity_Stock','Stock']].describe())
+
+
+X = df[['Commodity_Stock']]
+Y = df[["Stock"]]
+
+#train and test the model
+X_train,X_test,Y_train,Y_test = train_test_split(X,Y,test_size=0.2)
+model = LinearRegression()
+model.fit(X_train,Y_train)
+
+#Predicting the Stocks based on Commodity_Stock
+check = pd.DataFrame({'Commodity_Stock':[0.03]})
+result = model.predict(check)
+print("The Value of Prediction of Stock: ",result)
+
+#plotting the regression line
+plt.figure(figsize=(8,4))
+plt.scatter(X,Y,color="blue")
+plt.plot(X,model.predict(X),color="red",linewidth=4)
+plt.xlabel("Commodity Stock")
+plt.ylabel("Stock")
+plt.title("Commodity Stock VS Stock")
+plt.show()
