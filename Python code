@@ -6,6 +6,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 
 df = pd.read_csv("C:/Users/shiva/OneDrive/Desktop/pyhton_project_dset.csv")
 df
@@ -111,7 +112,7 @@ model = LinearRegression()
 model.fit(X_train,Y_train)
 
 #Predicting the Stocks based on Commodity_Stock
-check = pd.DataFrame({'Commodity_Stock':[0.03]})
+check = pd.DataFrame({'Commodity_Stock':[0.03,0.45,0.08]})
 result = model.predict(check)
 print("The Value of Prediction of Stock: ",result)
 
@@ -123,3 +124,8 @@ plt.xlabel("Commodity Stock")
 plt.ylabel("Stock")
 plt.title("Commodity Stock VS Stock")
 plt.show()
+
+#measuring the error
+Y_pred = model.predict(X_test)
+mse = mean_squared_error(Y_test,Y_pred)
+print(f"Mean Squared Error (MSE: {mse:.4f}")
